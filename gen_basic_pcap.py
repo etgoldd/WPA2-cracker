@@ -23,14 +23,28 @@ from scapy.layers.eap import EAPOL
 
 PCAP_LOC = "assets/template.pcap"
 
+
+anonce = binascii.a2b_hex("9a3a87b7947de01174fa0aa2e5a61dfa5a7b165d698e0b4624994817af48d7df")
+snonce = binascii.a2b_hex("013a9e0394be853e01ce13c180052a4bf42f57c0dbe398fee3ba00269233ac60")
+
+
+BOB_MAC = "28:b3:71:34:f6:bc"
+ALICE_MAC = "30:05:05:75:be:df"
+bssid = "00:09:0f:09:00:1a"
+
+ssid = "Building_G2"
+passkey = "123456789"
+
 ALICE_IP = "196.162.0.5"
 BOB_IP = "196.162.0.9"
-ALICE_MAC = "aa:aa:aa:aa:aa:aa"
-BOB_MAC = "bb:bb:bb:bb:bb:bb"
+#ALICE_MAC = "aa:aa:aa:aa:aa:aa"
+#BOB_MAC = "bb:bb:bb:bb:bb:bb"
 
-bssid = "be:09:77:06:31:96"
-anonce = b"\xaa" * 32  # Example ANonce
-snonce = b"\x11" * 32  # Example SNonce
+#bssid = "be:09:77:06:31:96"
+#anonce = b"\xaa" * 32  # Example ANonce
+#snonce = b"\x11" * 32  # Example SNonce
+
+
 ptk = b"\x33" * 48  # Example PTK
 eapol_load = b"\x02\x00\x8a\x00\x10\x00\x00\x00\x00\x00\x00\x00\x02\x7e\x9e\x4a\x5a\x45\x11\x80\x61\x99\x69\x46\xa2\xcd\xe3\x60\x60\xdb\xd7\xab\x3c\x65\x5e\x3c\x03\x54\xbe\x29\xd5\xa5\x75\x21\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x16\xdd\x14\x00\x0f\xac\x04\x77\xe7\x6a\x18\xbc\x30\x6a\x97\xec\xb8\x2f\xcc\x80\xf0\x50\xad"
 
@@ -189,8 +203,9 @@ def gen_eapol_load(
 
 
 def gen_pcaps(group_name):
-    ssid = f"{group_name}_wifi"
-    passkey = str(pow(hash(f"{group_name}_password"), 2, 10**8))
+    #ssid = f"{group_name}_wifi"
+    #passkey = str(pow(int.from_bytes(hashlib.sha256(f"{group_name}_password".encode('ascii')).digest(), 'little'), 2, 10**9 + 7))
+    print(passkey)
     flag = hex(hash(group_name))[:16]
     packets = []
 
@@ -199,13 +214,13 @@ def gen_pcaps(group_name):
         Dot11(
             type=0,
             subtype=2,
-            addr1=bssid,
+            addr1=BOB_MAC,
             addr2=ALICE_MAC,
-            addr3=bssid,
+            addr3=BOB_MAC,
             FCfield="to-DS",
         )
         / Dot11ReassoReq(cap=0x1111, listen_interval=14)
-        / Dot11Elt(ID=0, info=ALICE_MAC)
+        / Dot11Elt(ID=0, info=ssid)
         / Dot11Elt(ID=1, info=b"\x82\x84\x8b\x96\x0c\x12\x18\x24")
         / Dot11Elt(ID=2, info=bssid)
         / Dot11Elt(
@@ -257,8 +272,8 @@ def gen_pcaps(group_name):
             type=2,
             subtype=8,
             addr1=ALICE_MAC,
-            addr2=bssid,
-            addr3=bssid,
+            addr2=BOB_MAC,
+            addr3=BOB_MAC,
             FCfield="from-DS",
         )
         / Dot11QoS(TID=6)
@@ -275,17 +290,23 @@ def gen_pcaps(group_name):
                 key_iv,
                 key_rsc,
                 key_id,
-                dummy_key_mic,
+                b"\x00" * 16, #dummy_key_mic,
                 # calc_mic(calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data), eapol_load),
                 key_data_length,
                 key_data,
             )
         )
     )
+
+    key_data2 = get_key_data(mac_string_to_bytes(ALICE_MAC), mac_string_to_bytes(BOB_MAC), anonce, snonce)
+    print(calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data2).hex())
+    #aaed4e19fd4c9bbd007ceed68bee752bde98dbab3b6a2446f77370550305960c9ebc481b33265c0db398269465d2f21e8d2646f82c7a6f6fd2e7f571ab6a1b6c
+    #[TK: 9ebc481b33265c0db398269465d2f21e]
     frame1_mic = calc_mic(
-        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data),
+        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data2),
         frame1.build(),
     )
+    frame1_mic = b"\x00" * 16
 
     frame1[Raw].load = gen_eapol_load(
         key_descriptor_type,
@@ -308,9 +329,9 @@ def gen_pcaps(group_name):
         Dot11(
             type=2,
             subtype=8,
-            addr1=bssid,
+            addr1=BOB_MAC,
             addr2=ALICE_MAC,
-            addr3=bssid,
+            addr3=BOB_MAC,
             FCfield="to-DS",
         )
         / Dot11QoS(TID=0, EOSP=1, TXOP=18)
@@ -333,10 +354,18 @@ def gen_pcaps(group_name):
             )
         )
     )
+    #test_data = binascii.a2b_hex("88013c0028b37134f6bc30050575bedf28b37134f6bc00000000aaaa03000000888e0103007702010a00000000000000000001013a9e0394be853e01ce13c180052a4bf42f57c0dbe398fee3ba00269233ac6000000000000000000000000000000000000000000000000000000000000000003fd6790593a2724cfcf927b93aa53c79001830160100000fac040100000fac040100000fac023c00000097892862")
+    #test_data = binascii.a2b_hex("0103007702010a00000000000000000001013a9e0394be853e01ce13c180052a4bf42f57c0dbe398fee3ba00269233ac6000000000000000000000000000000000000000000000000000000000000000003fd6790593a2724cfcf927b93aa53c79001830160100000fac040100000fac040100000fac023c00000097892862")
+    #print(len(test_data))
+    #mic_test = test_data[:81] + b"\x00" * 16 + test_data[97:-4]
+    #ptk = calc_ptk(calc_pmk(ssid.encode("ascii"), passkey.encode("ascii")), key_data2)
+    #print(frame2.build().hex())
+    #print(calc_mic(ptk, mic_test).hex())
     frame2_mic = calc_mic(
-        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data),
-        frame2.build(),
+        calc_ptk(calc_pmk(ssid.encode("ascii"), passkey.encode("ascii")), key_data2),
+        frame2[EAPOL].build(),
     )
+    #print(frame2[EAPOL].build().hex())
     frame2[Raw].load = gen_eapol_load(
         key_descriptor_type,
         key_info,
@@ -350,6 +379,7 @@ def gen_pcaps(group_name):
         len(key_data).to_bytes(2, "big"),
         key_data,
     )
+    #print("\n\n\n", frame2[EAPOL].build().hex(), "\n\n\n")
     # # Frame 3: AP to Client (MIC)
     key_info = b"\x13\xca"
     key_data = b"\xa0\x14\xaa\x8d\xa8\x3a\xeb\xfb\xb5\x9e\xed\x08\xf8\x9e\x7f\xd3\x37\x39\x7f\xef\x67\x3f\x9d\x41\xa8\x6f\x19\x42\xac\xbb\xe6\xd3\xf2\x6f\x0b\x66\x29\x37\xb6\x91\x9c\x0b\xb8\x38\xef\xfc\xce\x3e\x8b\xf6\xef\xf9\xaa\x08\x6b\x31"
@@ -358,8 +388,8 @@ def gen_pcaps(group_name):
             type=2,
             subtype=8,
             addr1=ALICE_MAC,
-            addr2=bssid,
-            addr3=bssid,
+            addr2=BOB_MAC,
+            addr3=BOB_MAC,
             FCfield="from-DS",
         )
         / Dot11QoS(TID=6)
@@ -383,8 +413,8 @@ def gen_pcaps(group_name):
         )
     )
     frame3_mic = calc_mic(
-        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data),
-        frame3.build(),
+        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data2),
+        frame3[EAPOL].build(),
     )
 
     frame3[Raw].load = gen_eapol_load(
@@ -408,9 +438,9 @@ def gen_pcaps(group_name):
         Dot11(
             type=2,
             subtype=8,
-            addr1=bssid,
+            addr1=BOB_MAC,
             addr2=ALICE_MAC,
-            addr3=bssid,
+            addr3=BOB_MAC,
             FCfield="to-DS",
         )
         / Dot11QoS(TID=0, EOSP=1, TXOP=16)
@@ -434,8 +464,8 @@ def gen_pcaps(group_name):
         )
     )
     frame4_mic = calc_mic(
-        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data),
-        frame4.build(),
+        calc_ptk(calc_pmk(ssid.encode("utf-8"), passkey.encode("utf-8")), key_data2),
+        frame4[EAPOL].build(),
     )
 
     frame4[Raw].load = gen_eapol_load(
@@ -480,9 +510,12 @@ def gen_pcaps(group_name):
         )
         src_mac, dst_mac = dst_mac, src_mac
 
-    pcap_writer = PcapWriter(PCAP_LOC, linktype=105)
+    pcap_writer = PcapWriter(PCAP_LOC, linktype=127)
     for pkt in packets:
-        pcap_writer.write(pkt.build())
+        pcap_writer.write((RadioTap() / pkt).build())
+    tcp_packets = rdpcap("/home/yuval/Downloads/dani1.pcapng")
+    for i in range(2735, 2745):
+        pcap_writer.write(bytes(tcp_packets[i]))
     pcap_writer.close()
 
 

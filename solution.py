@@ -33,6 +33,8 @@ def extract_nonces(handshake_data: List[bytes]) -> Tuple[bytes, bytes]:
     snonce = snonce_packet_data[NONCE_OFFSET:NONCE_END]
     return anonce, snonce
 
+#8801000028b37134f6bc30050575bedf28b37134f6bc00001012aaaa03000000888e0203007502010a00100000000000000001013a9e0394be853e01ce13c180052a4bf42f57c0dbe398fee3ba00269233ac600000000000000000000000000000000000000000000000000000000000000000dd6d91ede26f183eb5f6fa1583486aef001630140100000fac040100000fac040100000fac020c00
+
 
 def get_mic_frame(handshake_data: List[bytes]) -> bytes:
     mic_frame = handshake_data[1]

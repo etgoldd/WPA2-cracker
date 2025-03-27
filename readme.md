@@ -4,7 +4,7 @@
 
 This repository contains two Python scripts designed for a Capture The Flag (CTF) challenge focused on the WPA2 protocol. The challenge involves understanding and exploiting the WPA2 handshake mechanism to retrieve a hidden flag. 
 
-- **`gen_basic_pcap_with_comments.py`**: A script to generate PCAP files simulating WPA2-encrypted communication, including the 4-way handshake and encrypted messages.
+- **`gen_pcap.py`**: A script to generate PCAP files simulating WPA2-encrypted communication, including the 4-way handshake and encrypted messages.
 - **`solution.py`**: A script to analyze the generated PCAP file, extract the WPA2 handshake, and attempt to crack the pre-shared key (PSK) using a password list.
 
 ---
@@ -62,11 +62,11 @@ This script analyzes the generated PCAP file to extract the WPA2 handshake and a
 
 ### Step 1: Generate the PCAP File
 
-Run the `gen_basic_pcap_with_comments.py` script to create a PCAP file for the challenge.
+Run the `gen_pcap.py` script to create a PCAP file for the challenge.
 
 #### Example Usage:
 ```bash
-python gen_basic_pcap_with_comments.py <team_name> <output_pcap_file> [faulty_mic] [flag]
+python gen_pcap.py <team_name> <output_pcap_file> [faulty_mic] [flag]
 ```
 
 #### Parameters:
@@ -77,7 +77,7 @@ python gen_basic_pcap_with_comments.py <team_name> <output_pcap_file> [faulty_mi
 
 #### Example:
 ```bash
-python gen_basic_pcap_with_comments.py groupname challenge.pcap
+python gen_pcap.py groupname challenge.pcap
 ```
 
 ---
@@ -111,7 +111,7 @@ python solution.py groupname_wifi challenge.pcap password_file passwords.txt
 
 1. **Generate the PCAP file**:
      ```bash
-     python gen_basic_pcap_with_comments.py groupname challenge.pcap
+     python gen_pcap.py groupname challenge.pcap
      ```
 
 2. **Crack the handshake using a password file**:
@@ -133,7 +133,7 @@ python solution.py groupname_wifi challenge.pcap password_file passwords.txt
 
 ## Notes
 
-- The `gen_basic_pcap_with_comments.py` script is designed for educational purposes and should not be used for malicious activities.
+- The `gen_pcap.py` script is designed for educational purposes and should not be used for malicious activities.
 - Ensure you have permission to analyze any PCAP files you work with.
 - The challenge is intended to deepen your understanding of WPA2 security and cryptographic protocols.
 

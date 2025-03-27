@@ -17,7 +17,7 @@ WPA2 (Wi-Fi Protected Access 2) is a security protocol used to secure wireless n
 
 ## File Descriptions
 
-### 1. `gen_basic_pcap_with_comments.py`
+### 1. `gen_pcap.py`
 
 This script generates a PCAP file simulating a WPA2 handshake and encrypted communication. It includes:
 
@@ -51,8 +51,8 @@ This script analyzes the generated PCAP file to extract the WPA2 handshake and a
 
 ### Prerequisites
 
-- Python 3.x
-- Required Python libraries: `scapy`, `binascii`, `hashlib`, `hmac`
+- Python 3.11
+- Required Python libraries: `scapy`
 - Install dependencies using:
     ```bash
     pip install scapy

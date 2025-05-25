@@ -3,7 +3,9 @@
 This project provides tools and scripts for generating WPA2 handshake PCAP files, brute-forcing WPA2 passwords, and analyzing WPA2 handshakes for educational and CTF purposes.
 
 ## Directory Structure
+  - **gen.py**: Core generator for custom WPA2 handshake PCAPs.
   - **solution.py**, **solution_mic.py**, **solution_pmk.py**, **solution_ptk.py**: Reference solutions for various WPA2 key derivation and MIC calculation tasks.
+  - **skeletons/**: Skeleton scripts for different challenge difficulties.
 
 ## Usage
 

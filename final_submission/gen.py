@@ -233,7 +233,7 @@ def gen_simple_udp_packet(src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port, 
     return packet
 
 def gen_pcaps(
-        group_name: str = "guacamole",
+        group_name: str = "team_one",
         bssid: str = "00:17:FA:65:43:21",
         ALICE_MAC: str = "00:03:93:12:34:56",
         BOB_MAC: str = "00:1A:2B:00:00:01",
@@ -247,6 +247,7 @@ def gen_pcaps(
             "I'm doing well too! I want to share this super secret message with you, but this unencrypted channel is not secure, let's move to a WPA2 network.",
             "Sounds good, I'll see you there!",
         ],
+        initial_encrypted_packets: Optional[List[Packet]] = None,    
         faulty_mic: bool = False,
         anonce: Optional[bytes] = None,
         snonce: Optional[bytes] = None,
@@ -255,6 +256,7 @@ def gen_pcaps(
         PCAP_LOC: Optional[str] = None,
         flag: Optional[str] = None,
         solution_file_hint: Optional[str] = None,
+
     ) -> Optional[BytesIO]:
     """
     @param group_name: str
@@ -283,6 +285,9 @@ def gen_pcaps(
         
     @param MESSAGES: List[str]
         A list of messages that Alice and Bob exchange. These messages are sent over an unencrypted UDP channel before the WPA2 connection and are followed by encrypted messages on the WPA2 network.
+    
+    @param initial_encrypted_packets: Optional[List[Packet]]
+        A list of pre-generated encrypted packets that can be included in the PCAP file. If provided, these packets will be added to the generated PCAP file before the WPA2 handshake.
         
     @param faulty_mic: bool
         A flag indicating whether to simulate a faulty Message Integrity Code (MIC) in the WPA2 handshake. If set to True, the MIC will be tampered with.
@@ -634,22 +639,23 @@ def gen_pcaps(
         key_data,
     )
 
-    initial_encrypted_packets = [
-        (
-            IP(src=ALICE_IP, dst=BOB_IP)
-            / UDP(sport=ALICE_PORT, dport=BOB_PORT)
-            / Raw(
-                load="Hey now that we're over an encrypted channel, can you tell me the flag?"
+    if initial_encrypted_packets is None:
+        initial_encrypted_packets = [
+            (
+                IP(src=ALICE_IP, dst=BOB_IP)
+                / UDP(sport=ALICE_PORT, dport=BOB_PORT)
+                / Raw(
+                    load="Hey now that we're over an encrypted channel, can you tell me the flag?"
+                ),
+                "to-DS"
             ),
-            "to-DS"
-        ),
-        (
-            IP(src=BOB_IP, dst=ALICE_IP)
-            / UDP(sport=BOB_PORT, dport=ALICE_PORT)
-            / Raw(load=f"Sure! The flag is: WPA2CTF{{{flag}}}"),
-            "from-DS"
-        )
-    ]
+            (
+                IP(src=BOB_IP, dst=ALICE_IP)
+                / UDP(sport=BOB_PORT, dport=ALICE_PORT)
+                / Raw(load=f"Sure! The flag is: WPA2CTF{{{flag}}}"),
+                "from-DS"
+            )
+        ]
 
     packets += [reassocaiton_request, frame1, frame2, frame3, frame4]
     #src_mac, dst_mac = ALICE_MAC, BOB_MAC

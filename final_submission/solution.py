@@ -125,10 +125,13 @@ def get_password_list(prefix: str):
         yield res
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) <= 4:
         print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password prefix>")
     ssid = sys.argv[1]
     filename = sys.argv[2]
     password_prefix = sys.argv[3]
+    debug = False
+    if len(sys.argv) >= 5:
+        debug = bool(sys.argv[4])
     password_list = get_password_list(password_prefix)
-    crack_eapol(ssid, filename, password_list)
+    crack_eapol(ssid, filename, password_list, debug)

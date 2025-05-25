@@ -1,7 +1,5 @@
-from scapy.all import *
 import hashlib
 import sys
-from typing import *
 
 def calc_pmk(ssid: bytes, password: bytes) -> bytes:
     pmk = hashlib.pbkdf2_hmac('sha1', password, ssid, 4096, 32)
@@ -14,8 +12,8 @@ if __name__ == "__main__":
         sys.exit(1)
     password = sys.argv[1]
     ssid = sys.argv[2]
-    ssid_bytes = ssid.encode('utf-8')
-    pmk = calc_pmk(ssid_bytes, password.encode('utf-8'))
+    ssid_bytes = ssid.encode('ascii')
+    pmk = calc_pmk(ssid_bytes, password.encode('ascii'))
     print("PMK: ", pmk.hex())
     
 

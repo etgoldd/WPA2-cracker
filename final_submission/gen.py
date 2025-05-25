@@ -247,7 +247,7 @@ def gen_pcaps(
             "I'm doing well too! I want to share this super secret message with you, but this unencrypted channel is not secure, let's move to a WPA2 network.",
             "Sounds good, I'll see you there!",
         ],
-        initial_encrypted_packets: Optional[List[Packet]] = None,    
+        initial_encrypted_packets: Optional[List[tuple[Packet, str]]] = None,    
         faulty_mic: bool = False,
         anonce: Optional[bytes] = None,
         snonce: Optional[bytes] = None,
@@ -286,7 +286,7 @@ def gen_pcaps(
     @param MESSAGES: List[str]
         A list of messages that Alice and Bob exchange. These messages are sent over an unencrypted UDP channel before the WPA2 connection and are followed by encrypted messages on the WPA2 network.
     
-    @param initial_encrypted_packets: Optional[List[Packet]]
+    @param initial_encrypted_packets: Optional[List[tuple[Packet, str]]]
         A list of pre-generated encrypted packets that can be included in the PCAP file. If provided, these packets will be added to the generated PCAP file before the WPA2 handshake.
         
     @param faulty_mic: bool

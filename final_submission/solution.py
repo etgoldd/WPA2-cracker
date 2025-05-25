@@ -127,7 +127,7 @@ def get_password_list(prefix: str):
 
 if __name__ == "__main__":
     if len(sys.argv) <= 4:
-        print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password prefix>")
+        print("Usage: ", sys.argv[0], "<beacon ssid> <pcap filename> <password prefix> <debug (0/1)>")
         sys.exit(1)
     ssid = sys.argv[1]
     filename = sys.argv[2]

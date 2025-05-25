@@ -3,10 +3,7 @@
 This project provides tools and scripts for generating WPA2 handshake PCAP files, brute-forcing WPA2 passwords, and analyzing WPA2 handshakes for educational and CTF purposes.
 
 ## Directory Structure
-  - **gen.py**: Core generator for custom WPA2 handshake PCAPs.
-  - **gen_pcap_with_skeleton.py**: Generates PCAPs with embedded solution skeletons for CTFs.
   - **solution.py**, **solution_mic.py**, **solution_pmk.py**, **solution_ptk.py**: Reference solutions for various WPA2 key derivation and MIC calculation tasks.
-  - **skeletons/**: Skeleton scripts for different challenge difficulties.
 
 ## Usage
 
@@ -15,7 +12,7 @@ This project provides tools and scripts for generating WPA2 handshake PCAP files
 To brute-force a WPA2 handshake using a password prefix:
 
 ```sh
-python final_submission/solution.py <SSID> <pcap file> <password prefix>
+python solution.py <SSID> <pcap file> <password prefix>
 ```
 
 - `<SSID>`: The WiFi network name (e.g., `team_one_wifi`)
